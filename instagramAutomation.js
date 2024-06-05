@@ -71,7 +71,7 @@ const fs = require('fs');
     // Kredensial Anda dan detail lainnya
     const username = 'graphicskyutee';
     const password = 'in$t@_kyu100%';
-    const competitorUrl = 'https://www.instagram.com/competitor_account/';
+    const competitorUrl = 'https://www.instagram.com/cratecafe?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==';
     const numberOfFollowersToFollow = 100;
 
     // Login dan lakukan tugas
