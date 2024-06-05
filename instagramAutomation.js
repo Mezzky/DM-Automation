@@ -19,22 +19,22 @@ const fs = require('fs');
         console.log('Login berhasil');
     }
 
-    // Ambil akun yang di-follow oleh kompetitor
-    async function getFollowingAccounts(competitorUrl) {
+    // Ambil followers terbaru dari akun kompetitor
+    async function getFollowers(competitorUrl, limit) {
         await page.goto(competitorUrl, { waitUntil: 'networkidle2' });
-        await page.waitForSelector('a[href$="/following/"]', { visible: true });
+        await page.waitForSelector('a[href$="/followers/"]', { visible: true });
         
-        // Klik link following
-        await page.click('a[href$="/following/"]');
+        // Klik link followers
+        await page.click('a[href$="/followers/"]');
         await page.waitForSelector('ul div li', { visible: true });
 
-        console.log('Mengambil daftar following...');
-        let followingAccounts = [];
+        console.log('Mengambil daftar followers...');
+        let followers = [];
         let previousHeight = 0;
 
-        while (followingAccounts.length < 25) {
-            const newFollowing = await page.$$eval('ul div li div div div div span a', anchors => anchors.map(anchor => anchor.textContent));
-            followingAccounts = [...new Set([...followingAccounts, ...newFollowing])];
+        while (followers.length < limit) {
+            const newFollowers = await page.$$eval('ul div li div div div div span a', anchors => anchors.map(anchor => anchor.textContent));
+            followers = [...new Set([...followers, ...newFollowers])];
 
             const newHeight = await page.evaluate('document.querySelector("ul").scrollHeight');
             if (newHeight === previousHeight) break;
@@ -44,30 +44,27 @@ const fs = require('fs');
             await page.waitForTimeout(2000); // Tunggu 2 detik
         }
 
-        return followingAccounts.slice(0, 25);
+        return followers.slice(0, limit);
     }
 
-    // Kirim pesan ke akun-akun
-    async function sendMessage(accounts, message) {
+    // Ikuti akun-akun terbaru
+    async function followAccounts(accounts) {
         for (let account of accounts) {
             await page.goto(`https://www.instagram.com/${account}/`, { waitUntil: 'networkidle2' });
             await page.waitForSelector('button', { visible: true });
 
-            // Klik tombol pesan
+            // Klik tombol follow
             const buttons = await page.$$('button');
             for (let button of buttons) {
                 const text = await (await button.getProperty('innerText')).jsonValue();
-                if (text.toLowerCase().includes('message')) {
+                if (text.toLowerCase().includes('follow')) {
                     await button.click();
+                    console.log(`Mengikuti akun: ${account}`);
                     break;
                 }
             }
             
-            await page.waitForSelector('textarea', { visible: true });
-            await page.type('textarea', message);
-            await page.keyboard.press('Enter');
-            console.log(`Pesan terkirim ke ${account}`);
-            await page.waitForTimeout(2000); // Tunggu 2 detik antara pesan
+            await page.waitForTimeout(2000); // Tunggu 2 detik antara follow
         }
     }
 
@@ -75,19 +72,19 @@ const fs = require('fs');
     const username = 'graphicskyutee';
     const password = 'in$t@_kyu100%';
     const competitorUrl = 'https://www.instagram.com/competitor_account/';
-    const message = 'Halo, kami ingin memperkenalkan produk baru kami!';
+    const numberOfFollowersToFollow = 100;
 
     // Login dan lakukan tugas
     try {
         await loginInstagram(username, password);
-        const followingAccounts = await getFollowingAccounts(competitorUrl);
-        console.log(`Akun yang di-follow: ${followingAccounts.length}`);
+        const followers = await getFollowers(competitorUrl, numberOfFollowersToFollow);
+        console.log(`Total followers ditemukan: ${followers.length}`);
         
         // Output list akun ke file
-        fs.writeFileSync('followingAccounts.json', JSON.stringify(followingAccounts, null, 2));
-        console.log('Akun yang dipilih:', followingAccounts);
+        fs.writeFileSync('followers.json', JSON.stringify(followers, null, 2));
+        console.log('Akun yang dipilih:', followers);
         
-        await sendMessage(followingAccounts, message);
+        await followAccounts(followers);
 
     } catch (error) {
         console.error('Terjadi kesalahan:', error);
