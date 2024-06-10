@@ -69,8 +69,8 @@ const fs = require('fs');
     }
 
     // Kredensial Anda dan detail lainnya
-    const username = 'graphicskyutee';
-    const password = 'in$t@_kyu100%';
+    const username = 'username';
+    const password = 'password';
     const competitorUrl = 'https://www.instagram.com/cratecafe?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==';
     const numberOfFollowersToFollow = 100;
 
